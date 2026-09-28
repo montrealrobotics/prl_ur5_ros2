@@ -40,7 +40,8 @@
     <xacro:property name="stand" value="${setup_file.get('bimanual_stand') or dict()}"/>
     <xacro:workcell_bimanual_stand parent="prl_ur5_base"
       arm_mount_height="${stand.get('arm_mount_height', 1.5)}"
-      plate_position="${stand.get('plate_position', 0.0)}"/>
+      plate_position="${stand.get('plate_position', 0.0)}"
+      frame_mass="${stand.get('frame_mass', 69.774)}"/>
     <!-- The stand origin is on the ground -->
     <xacro:property name="workcell_height" value="0.0"/>
     <!-- arm_pose of each arm is its offset from the mounting plate -->
@@ -117,8 +118,8 @@
     <origin xyz="0 0 ${workcell_height}" rpy="0 0 0" />
   </joint> 
 
-  <!-- Gazebo: the stand is bolted to the floor. Without this it tips over under the cantilevered arms. -->
-  <xacro:if value="${workcell == 'bimanual_stand' and '$(arg gz_sim)'.lower() == 'true'}">
+  <!-- Gazebo: the stand is bolted to the floor. Set "anchored: false" to let it stand freely on its casters. -->
+  <xacro:if value="${workcell == 'bimanual_stand' and stand.get('anchored', True) and '$(arg gz_sim)'.lower() == 'true'}">
     <link name="world"/>
     <joint name="world_to_base_link" type="fixed">
       <parent link="world"/>

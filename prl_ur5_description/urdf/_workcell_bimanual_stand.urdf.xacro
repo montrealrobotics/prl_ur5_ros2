@@ -5,8 +5,11 @@
        The frame origin is on the ground. Arms are mounted on left_mount_plate / right_mount_plate.
 
        arm_mount_height: height (m) from the ground to the top point of the angled bracket
-       plate_position:   plate position along the bracket (m); 0 = highest point, range roughly 0.0 to 0.12 -->
-  <xacro:macro name="workcell_bimanual_stand" params="parent arm_mount_height:=1.5 plate_position:=0.0">
+       plate_position:   plate position along the bracket (m); 0 = highest point, range roughly 0.0 to 0.12
+       frame_mass:       mass (kg) of the frame; the default assumes 80x80 aluminium extrusion (40% of the solid mesh)
+
+       Inertias were computed from the meshes with aluminium (2700 kg/m3); brackets and plates are solid. -->
+  <xacro:macro name="workcell_bimanual_stand" params="parent arm_mount_height:=1.5 plate_position:=0.0 frame_mass:=69.774">
 
     <xacro:property name="stand_mesh_dir" value="file://$(find prl_ur5_description)/model/bimanual_stand"/>
     <!-- Meshes are exported in cm -->
@@ -22,7 +25,16 @@
       <color rgba="0.5 0.5 0.5 1.0"/>
     </material>
 
+    <!-- Frame inertia scales with frame_mass (69.774 kg at 40% fill) -->
+    <xacro:property name="frame_inertia_scale" value="${frame_mass / 69.774}"/>
+
     <link name="stand_frame">
+      <inertial>
+        <origin xyz="-0.1294 0.0001 0.5820" rpy="0 0 0"/>
+        <mass value="${frame_mass}"/>
+        <inertia ixx="${19.86539 * frame_inertia_scale}" ixy="${-0.00215 * frame_inertia_scale}" ixz="${2.43733 * frame_inertia_scale}"
+                 iyy="${18.28416 * frame_inertia_scale}" iyz="${0.00446 * frame_inertia_scale}" izz="${6.19608 * frame_inertia_scale}"/>
+      </inertial>
       <visual>
         <geometry>
           <mesh filename="${stand_mesh_dir}/mount.stl" scale="${stand_mesh_scale}"/>
@@ -44,8 +56,14 @@
     </joint>
 
     <!-- Angled bracket + mounting plate for one arm -->
-    <xacro:macro name="bimanual_stand_arm_mount" params="prefix mount_xyz mount_rpy bracket_mesh plate_xyz">
+    <xacro:macro name="bimanual_stand_arm_mount" params="prefix mount_xyz mount_rpy bracket_mesh plate_xyz bracket_side">
       <link name="${prefix}mount_assembly">
+        <!-- Solid aluminium bracket; bracket_side mirrors the COM and iyz for the two brackets -->
+        <inertial>
+          <origin xyz="0 ${0.0417 * bracket_side} 0.0417" rpy="0 0 0"/>
+          <mass value="8.449"/>
+          <inertia ixx="0.10653" ixy="0" ixz="0" iyy="0.08474" iyz="${0.02800 * bracket_side}" izz="0.08487"/>
+        </inertial>
         <visual>
           <geometry>
             <mesh filename="${stand_mesh_dir}/${bracket_mesh}" scale="${stand_mesh_scale}"/>
@@ -67,6 +85,11 @@
       </joint>
 
       <link name="${prefix}mount_plate">
+        <!-- Solid aluminium plate, 160 x 160 x 20 mm -->
+        <inertial>
+          <mass value="1.382"/>
+          <inertia ixx="0.00300" ixy="0" ixz="0" iyy="0.00300" iyz="0" izz="0.00590"/>
+        </inertial>
         <visual>
           <geometry>
             <mesh filename="${stand_mesh_dir}/mount_plate.stl" scale="${stand_mesh_scale}"/>
@@ -89,11 +112,11 @@
 
     <xacro:bimanual_stand_arm_mount prefix="left_"
       mount_xyz="-0.212 0.2754 ${mount_z}" mount_rpy="${radians(-45)} 0 0"
-      bracket_mesh="angled_arm_2.stl" plate_xyz="0 ${-plate_y} 0.14953"/>
+      bracket_mesh="angled_arm_2.stl" plate_xyz="0 ${-plate_y} 0.14953" bracket_side="1"/>
 
     <xacro:bimanual_stand_arm_mount prefix="right_"
       mount_xyz="-0.212 -0.2754 ${mount_z}" mount_rpy="${radians(45)} 0 0"
-      bracket_mesh="angled_arm_1.stl" plate_xyz="0 ${plate_y} 0.14953"/>
+      bracket_mesh="angled_arm_1.stl" plate_xyz="0 ${plate_y} 0.14953" bracket_side="-1"/>
 
   </xacro:macro>
 </robot>
