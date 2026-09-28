@@ -3,6 +3,7 @@
 # Arguments:
 #   - gripper_controller: Gripper controller to use.
 #   - prefix: Robot prefix. Default is "".
+#   - sim: True when running in simulation. Default is "false".
 # Usage:
 #   - ros2 launch prl_ur5_control mantis_gripper_controllers.launch.py gripper_controller:=<gripper-type> prefix:=<tf-prefix>
 ############################################################################################################
@@ -24,6 +25,7 @@ def launch_setup(context):
     # Initialize Arguments
     controller = LaunchConfiguration("gripper_controller").perform(context)
     prefix = LaunchConfiguration("prefix").perform(context)
+    sim = LaunchConfiguration("sim").perform(context).lower() == "true"
 
     # Start the controller based on the argument
     controllers_to_start = []
@@ -71,6 +73,20 @@ def launch_setup(context):
                     ],
             )
         controllers_to_start.append(allegro_controller)
+    elif controller == "robotiq-2f-85":
+        controller_file = PathJoinSubstitution([FindPackageShare('prl_ur5_control'), 'config', 'robotiq_2f_85.yaml'])
+        controllers_to_start.append(Node(
+            package='controller_manager',
+            executable='spawner',
+            arguments=[prefix + "gripper_controller", '--param-file', controller_file],
+        ))
+        # The activation controller needs the gripper's reactivate GPIO, which only the real driver provides
+        if not sim:
+            controllers_to_start.append(Node(
+                package='controller_manager',
+                executable='spawner',
+                arguments=[prefix + "robotiq_activation_controller", '--param-file', controller_file],
+            ))
     elif not controller or controller.lower() == "none":
         pass
     else:
@@ -92,6 +108,13 @@ def generate_launch_description():
             "prefix",
             description="Robot prefix",
             default_value="",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "sim",
+            description="True when running in simulation",
+            default_value="false",
         )
     )
     return LaunchDescription(declared_arguments + [OpaqueFunction(function=launch_setup)])

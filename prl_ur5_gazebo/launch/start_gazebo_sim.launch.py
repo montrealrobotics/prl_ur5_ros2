@@ -27,7 +27,7 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, OpaqueFunction
+from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, OpaqueFunction
 from launch.event_handlers import OnProcessExit
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import (
@@ -206,6 +206,7 @@ def launch_setup(context):
         launch_arguments=[
             ('gripper_controller', left_gripper_controller),
             ('prefix', 'left_'),
+            ('sim', 'true'),
         ],
     )
     right_gripper_controller = IncludeLaunchDescription(
@@ -219,9 +220,21 @@ def launch_setup(context):
         launch_arguments=[
             ('gripper_controller', right_gripper_controller),
             ('prefix', 'right_'),
+            ('sim', 'true'),
         ],
     )
-    return [robot_state_publisher, 
+    # Let Gazebo resolve package:// meshes of grippers that do not use absolute paths
+    gz_resource_paths = []
+    for side in ('left', 'right'):
+        if config.get(side, {}).get('gripper') == 'robotiq-2f-85':
+            gz_resource_paths.append(AppendEnvironmentVariable(
+                'GZ_SIM_RESOURCE_PATH',
+                os.path.dirname(get_package_share_directory('robotiq_description')),
+            ))
+            break
+
+    return [*gz_resource_paths,
+            robot_state_publisher, 
             gazebo,
             bridge,
             ignition_spawn_entity,

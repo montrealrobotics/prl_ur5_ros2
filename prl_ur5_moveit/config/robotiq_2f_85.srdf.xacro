@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Robotiq 2F-85 (robotiq_description) semantic description.
+     prefix is the gripper prefix without trailing underscore, e.g. "left_gripper". -->
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+    <xacro:property name="robotiq_2f_85_links" value="${['ur_to_robotiq_link', 'robotiq_85_base_link',
+        'robotiq_85_left_knuckle_link', 'robotiq_85_right_knuckle_link',
+        'robotiq_85_left_inner_knuckle_link', 'robotiq_85_right_inner_knuckle_link',
+        'robotiq_85_left_finger_link', 'robotiq_85_right_finger_link',
+        'robotiq_85_left_finger_tip_link', 'robotiq_85_right_finger_tip_link']}"/>
+
+    <xacro:macro name="robotiq_2f_85_group_define" params="group_name prefix">
+        <group name="${group_name}">
+            <xacro:macro name="_robotiq_2f_85_group_links" params="links">
+                <xacro:if value="${links}">
+                    <link name="${prefix}_${links[0]}"/>
+                    <xacro:_robotiq_2f_85_group_links links="${links[1:]}"/>
+                </xacro:if>
+            </xacro:macro>
+            <xacro:_robotiq_2f_85_group_links links="${robotiq_2f_85_links}"/>
+            <joint name="${prefix}_robotiq_85_left_knuckle_joint"/>
+        </group>
+
+        <group_state name="open" group="${group_name}">
+            <joint name="${prefix}_robotiq_85_left_knuckle_joint" value="0.0"/>
+        </group_state>
+        <group_state name="close" group="${group_name}">
+            <joint name="${prefix}_robotiq_85_left_knuckle_joint" value="0.7929"/>
+        </group_state>
+    </xacro:macro>
+
+    <!-- The gripper links are one mechanism: do not check them against each other -->
+    <xacro:macro name="robotiq_2f_85_autocol" params="prefix">
+        <xacro:macro name="_robotiq_2f_85_pairs" params="links">
+            <xacro:if value="${len(links) > 1}">
+                <xacro:macro name="_robotiq_2f_85_pairs_with" params="first others">
+                    <xacro:if value="${others}">
+                        <disable_collisions link1="${prefix}_${first}" link2="${prefix}_${others[0]}" reason="Never"/>
+                        <xacro:_robotiq_2f_85_pairs_with first="${first}" others="${others[1:]}"/>
+                    </xacro:if>
+                </xacro:macro>
+                <xacro:_robotiq_2f_85_pairs_with first="${links[0]}" others="${links[1:]}"/>
+                <xacro:_robotiq_2f_85_pairs links="${links[1:]}"/>
+            </xacro:if>
+        </xacro:macro>
+        <xacro:_robotiq_2f_85_pairs links="${robotiq_2f_85_links}"/>
+    </xacro:macro>
+
+    <!-- link is rigidly attached to the gripper (wrist 3, F/T sensor, wrist camera) -->
+    <xacro:macro name="robotiq_2f_85_col_with" params="prefix link">
+        <xacro:macro name="_robotiq_2f_85_col_with" params="links">
+            <xacro:if value="${links}">
+                <disable_collisions link1="${prefix}_${links[0]}" link2="${link}" reason="Never"/>
+                <xacro:_robotiq_2f_85_col_with links="${links[1:]}"/>
+            </xacro:if>
+        </xacro:macro>
+        <xacro:_robotiq_2f_85_col_with links="${robotiq_2f_85_links}"/>
+    </xacro:macro>
+</robot>

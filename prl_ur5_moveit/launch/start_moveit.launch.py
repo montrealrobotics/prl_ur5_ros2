@@ -14,6 +14,7 @@ from launch_ros.substitutions import FindPackageShare
 
 from launch_ros.parameter_descriptions import ParameterValue
 from pathlib import Path
+import yaml
 from moveit_configs_utils import MoveItConfigsBuilder
 
 def launch_setup(context):
@@ -27,6 +28,19 @@ def launch_setup(context):
         .robot_description_semantic(Path("config") / "mantis.srdf")
         .to_moveit_configs()
     )
+
+    # Gripper controllers act on a different joint depending on the gripper model
+    gripper_command_joints = {
+        'robotiq-2f-85': '{prefix}gripper_robotiq_85_left_knuckle_joint',
+    }
+    setup_file = os.path.join(get_package_share_directory('prl_ur5_robot_configuration'), 'config', 'standard_setup.yaml')
+    with open(setup_file, 'r') as f:
+        setup = yaml.safe_load(f)
+    controllers = moveit_config.trajectory_execution['moveit_simple_controller_manager']
+    for side in ('left', 'right'):
+        joint = gripper_command_joints.get(setup.get(side, {}).get('gripper'))
+        if joint:
+            controllers[f'{side}_gripper_controller']['joints'] = [joint.format(prefix=f'{side}_')]
     warehouse_ros_config = {
         "warehouse_plugin": "warehouse_ros_sqlite::DatabaseConnection",
         "warehouse_host": os.path.expanduser("~/.ros/warehouse_ros.sqlite"),

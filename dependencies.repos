@@ -20,3 +20,11 @@
 - git:
     local-name: allegro_hand_ros_v4
     uri: https://github.com/inria-paris-robotics-lab/allegro_hand_ros_v4.git
+- git:
+    local-name: ros2_robotiq_gripper
+    uri: https://github.com/PickNikRobotics/ros2_robotiq_gripper.git
+    version: main
+- git:
+    local-name: serial
+    uri: https://github.com/tylerjw/serial.git
+    version: ros2

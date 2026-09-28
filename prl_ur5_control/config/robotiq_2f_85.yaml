@@ -1,0 +1,26 @@
+right_gripper_controller:
+  ros__parameters:
+    type: position_controllers/GripperActionController
+    action_monitor_rate: 100.0
+    allow_stalling: true
+    goal_tolerance: 0.02
+    joint: right_gripper_robotiq_85_left_knuckle_joint
+    max_effort: 0.0
+
+left_gripper_controller:
+  ros__parameters:
+    type: position_controllers/GripperActionController
+    action_monitor_rate: 100.0
+    allow_stalling: true
+    goal_tolerance: 0.02
+    joint: left_gripper_robotiq_85_left_knuckle_joint
+    max_effort: 0.0
+
+# Real hardware only: provides the ~/reactivate_gripper service
+right_robotiq_activation_controller:
+  ros__parameters:
+    type: robotiq_controllers/RobotiqActivationController
+
+left_robotiq_activation_controller:
+  ros__parameters:
+    type: robotiq_controllers/RobotiqActivationController

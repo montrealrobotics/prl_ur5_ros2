@@ -47,7 +47,7 @@ from launch_ros.actions import Node
 from launch_ros.parameter_descriptions import ParameterFile
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
-from ament_index_python.packages import get_package_share_directory
+from ament_index_python.packages import get_package_prefix, get_package_share_directory
 import os
 from pathlib import Path
 import yaml
@@ -299,6 +299,24 @@ def launch_setup(context):
         condition=IfCondition(activate_cameras),
     )
 
+    ###### Tool communication ######
+    # Exposes the RS-485 of the tool connector as a local serial device (e.g. for a Robotiq gripper).
+    # The Robotiq URCap must not be running on the robot, as it also uses the tool RS-485.
+    tool_communication = []
+    for side, robot_ip in (('left', left_robot_ip), ('right', right_robot_ip)):
+        arm = config.get(side) or {}
+        if arm.get('tool_communication', False):
+            tool_communication.append(ExecuteProcess(
+                name=f"{side}_ur_tool_comm",
+                cmd=[
+                    os.path.join(get_package_prefix('ur_client_library'), 'lib', 'ur_client_library', 'tool_communication.py'),
+                    robot_ip,
+                    '--tcp-port', '54321',
+                    '--device-name', arm.get('tool_device_name', f'/tmp/ttyUR_{side}'),
+                ],
+                output="screen",
+            ))
+
     ###### MoveIt ######
     moveit_launch = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
@@ -314,7 +332,7 @@ def launch_setup(context):
         condition=IfCondition(launch_moveit),
     )
 
-    return can_setup_actions + [
+    return can_setup_actions + tool_communication + [
         right_calib,
         left_calib,
         control_node,

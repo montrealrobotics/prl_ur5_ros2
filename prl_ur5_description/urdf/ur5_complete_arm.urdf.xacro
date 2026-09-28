@@ -34,6 +34,9 @@
         physical_parameters_file:=''
         visual_parameters_file:=''
         wrist_connector:=true
+        tool_communication:=false
+        tool_device_name:=/tmp/ttyUR
+        gripper_com_port:=/dev/ttyUSB0
         safety_limits:=false
         safety_pos_margin:=0.15
         safety_k_position:=20
@@ -85,6 +88,10 @@
             <xacro:ur_ros2_control
                 name="${prefix}arm"
                 tf_prefix="${prefix}"
+                ur_type="${ur_type}"
+                use_tool_communication="${tool_communication}"
+                tool_voltage="${24 if tool_communication else 0}"
+                tool_device_name="${tool_device_name}"
                 kinematics_parameters_file="${kinematics_parameters_file}"
                 robot_ip="${network['ip']}"
                 script_filename="${ur_script_filename}"
@@ -121,7 +128,9 @@
         </xacro:unless>
 
         <!-- Gripper -->
-        <xacro:gripper gripper="${gripper}" prefix='${prefix}' parent="${gripper_parent}" pose="${gripper_pose}" hardware_interface="${hw_interface}" gz_sim="${gz_sim}"/>
+        <!-- A gripper plugged into the tool connector is reached through the tool communication device -->
+        <xacro:property name="gripper_serial_port" value="${tool_device_name if tool_communication else gripper_com_port}"/>
+        <xacro:gripper gripper="${gripper}" prefix='${prefix}' parent="${gripper_parent}" pose="${gripper_pose}" hardware_interface="${hw_interface}" gz_sim="${gz_sim}" com_port="${gripper_serial_port}"/>
 
         <!-- Right angle connector -->
         <xacro:if value="${wrist_connector}">

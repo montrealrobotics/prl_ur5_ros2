@@ -5,10 +5,10 @@
   <xacro:include filename="$(find onrobot_description)/urdf/onrobot_rg.urdf.xacro"/>
 
   <!-- Macro to generate gripper -->
-  <xacro:macro name="gripper" params="gripper prefix parent pose hardware_interface gz_sim">
+  <xacro:macro name="gripper" params="gripper prefix parent pose hardware_interface gz_sim com_port:=/dev/ttyUSB0">
 
     <!-- check gripper type -->
-    <xacro:unless value="${gripper in [None, 'onrobot-rg2', 'onrobot-rg6', 'onrobot-rg6-v2', 'weiss-wsg50'] or gripper.startswith('custom:') or gripper.startswith('allegro-hand:')}">
+    <xacro:unless value="${gripper in [None, 'onrobot-rg2', 'onrobot-rg6', 'onrobot-rg6-v2', 'weiss-wsg50', 'robotiq-2f-85'] or gripper.startswith('custom:') or gripper.startswith('allegro-hand:')}">
       <xacro:unknown_gripper_type/>
     </xacro:unless>
 
@@ -39,6 +39,26 @@
       <xacro:wsg_50_xacro prefix="${prefix}gripper" parent="${parent}" finger_length="0.023" finger_tip="0.0" real_hardware="${not gz_sim}" sim_standalone="false">
         <origin xyz="${pose['x']} ${pose['y']} ${pose['z']}" rpy="${pose['roll']} ${pose['pitch']} ${pose['yaw']}"/>
       </xacro:wsg_50_xacro>
+    </xacro:if>
+
+    <!-- if robotiq-2f-85 -->
+    <xacro:if value="${gripper == 'robotiq-2f-85'}">
+      <xacro:include filename="$(find robotiq_description)/urdf/ur_to_robotiq_adapter.urdf.xacro"/>
+      <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_85_macro.urdf.xacro"/>
+      <!-- Robotiq coupling for UR e-series flanges -->
+      <xacro:ur_to_robotiq prefix="${prefix}gripper_" parent="${parent}" child="${prefix}gripper_coupling"/>
+      <!-- Real hardware talks to the gripper over com_port (the UR tool connector or a USB adapter) -->
+      <xacro:robotiq_gripper name="${prefix}gripper" prefix="${prefix}gripper_" parent="${prefix}gripper_coupling"
+                             sim_gazebo="${gz_sim}" com_port="${com_port}">
+        <origin xyz="${pose['x']} ${pose['y']} ${pose['z']}" rpy="${pose['roll']} ${pose['pitch']} ${pose['yaw']}"/>
+      </xacro:robotiq_gripper>
+      <!-- Approximate centre of the finger pads; check against the real gripper -->
+      <link name="${prefix}gripper_grasp_frame"/>
+      <joint name="${prefix}gripper_grasp_frame_joint" type="fixed">
+        <parent link="${prefix}gripper_robotiq_85_base_link"/>
+        <child link="${prefix}gripper_grasp_frame"/>
+        <origin xyz="0 0 0.13" rpy="0 0 0"/>
+      </joint>
     </xacro:if>
 
     <!-- if allegro-hand -->
