@@ -117,4 +117,14 @@
     <origin xyz="0 0 ${workcell_height}" rpy="0 0 0" />
   </joint> 
 
+  <!-- Gazebo: the stand is bolted to the floor. Without this it tips over under the cantilevered arms. -->
+  <xacro:if value="${workcell == 'bimanual_stand' and '$(arg gz_sim)'.lower() == 'true'}">
+    <link name="world"/>
+    <joint name="world_to_base_link" type="fixed">
+      <parent link="world"/>
+      <child link="base_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+  </xacro:if>
+
 </robot>
