@@ -86,26 +86,53 @@
         </xacro:if>
         <!-- ROS2 control if real robot -->
         <xacro:unless value="${gz_sim}">
-            <xacro:ur_ros2_control
-                name="${prefix}arm"
-                tf_prefix="${prefix}"
-                ur_type="${ur_type}"
-                use_tool_communication="${tool_communication}"
-                tool_voltage="${24 if tool_communication else 0}"
-                tool_device_name="${tool_device_name}"
-                kinematics_parameters_file="${kinematics_parameters_file}"
-                robot_ip="${network['ip']}"
-                script_filename="${ur_script_filename}"
-                output_recipe_filename="${ur_output_recipe_filename}"
-                input_recipe_filename="${ur_input_recipe_filename}"
-                use_mock_hardware="false"
-                mock_sensor_commands="false"
-                headless_mode="${headless_mode}"
-                script_command_port="${network['script_command_port']}"
-                reverse_port="${network['reverse_port']}"
-                script_sender_port="${network['script_sender_port']}"
-                trajectory_port="${network['trajectory_port']}"
-            /> 
+            <!-- ur_ros2_control requires ur_type from ur_robot_driver 3.9.0 and rejects it before.
+                 The installed version is read from its package.xml. Drop the < 3.9 branch once 3.9 is
+                 in the stable Jazzy repository everywhere. -->
+            <xacro:property name="ur_driver_version" value="${xacro.load_yaml('$(find ur_robot_driver)/package.xml').split('&lt;version&gt;')[1].split('&lt;/version&gt;')[0]}"/>
+            <xacro:if value="${[int(v) for v in ur_driver_version.split('.')[:2]] >= [3, 9]}">
+                <xacro:ur_ros2_control
+                    name="${prefix}arm"
+                    tf_prefix="${prefix}"
+                    ur_type="${ur_type}"
+                    use_tool_communication="${tool_communication}"
+                    tool_voltage="${24 if tool_communication else 0}"
+                    tool_device_name="${tool_device_name}"
+                    kinematics_parameters_file="${kinematics_parameters_file}"
+                    robot_ip="${network['ip']}"
+                    script_filename="${ur_script_filename}"
+                    output_recipe_filename="${ur_output_recipe_filename}"
+                    input_recipe_filename="${ur_input_recipe_filename}"
+                    use_mock_hardware="false"
+                    mock_sensor_commands="false"
+                    headless_mode="${headless_mode}"
+                    script_command_port="${network['script_command_port']}"
+                    reverse_port="${network['reverse_port']}"
+                    script_sender_port="${network['script_sender_port']}"
+                    trajectory_port="${network['trajectory_port']}"
+                /> 
+            </xacro:if>
+            <xacro:unless value="${[int(v) for v in ur_driver_version.split('.')[:2]] >= [3, 9]}">
+                <xacro:ur_ros2_control
+                    name="${prefix}arm"
+                    tf_prefix="${prefix}"
+                    use_tool_communication="${tool_communication}"
+                    tool_voltage="${24 if tool_communication else 0}"
+                    tool_device_name="${tool_device_name}"
+                    kinematics_parameters_file="${kinematics_parameters_file}"
+                    robot_ip="${network['ip']}"
+                    script_filename="${ur_script_filename}"
+                    output_recipe_filename="${ur_output_recipe_filename}"
+                    input_recipe_filename="${ur_input_recipe_filename}"
+                    use_mock_hardware="false"
+                    mock_sensor_commands="false"
+                    headless_mode="${headless_mode}"
+                    script_command_port="${network['script_command_port']}"
+                    reverse_port="${network['reverse_port']}"
+                    script_sender_port="${network['script_sender_port']}"
+                    trajectory_port="${network['trajectory_port']}"
+                /> 
+            </xacro:unless>
         </xacro:unless>
 
         <!-- Force sensor -->
