@@ -7,6 +7,9 @@
 # Usage:
 #   $ ros2 launch prl_ur5_description view_workbench.launch.py
 ############################################################################################################
+import os
+import yaml
+from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.substitutions import Command, FindExecutable, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -34,11 +37,20 @@ def generate_launch_description():
     robot_description = {
         "robot_description": ParameterValue(value=robot_description_content, value_type=str)
     }
+    # Start the joint sliders at the initial joint positions of the setup file (if any)
+    setup_file = os.path.join(get_package_share_directory('prl_ur5_robot_configuration'), 'config', 'standard_setup.yaml')
+    with open(setup_file, 'r') as f:
+        setup = yaml.safe_load(f)
+    zeros = {}
+    for side in ('left', 'right'):
+        for joint, value in ((setup.get(side) or {}).get('initial_joint_positions') or {}).items():
+            zeros[f'{side}_{joint}'] = float(value)
+
     # Define the joint_state_publisher_gui node
     joint_state_publisher_node = Node(
         package="joint_state_publisher_gui",
         executable="joint_state_publisher_gui",
-        parameters=[robot_description],
+        parameters=[robot_description, {"zeros": zeros}] if zeros else [robot_description],
     )
     # Define the robot_state_publisher node to publish the robot state
     robot_state_publisher_node = Node(
