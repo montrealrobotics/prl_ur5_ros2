@@ -17,83 +17,49 @@
   <!-- Global frame -->
   <link name="prl_ur5_base"/>
   
-  <!-- Table -->
-  <material name="Blue">
-    <color rgba="${0/255} ${30/255} ${70/255} 1.0"/>
-  </material>
+  <!-- Workcell: what the arms are mounted on (setup file key "workcell", default "mantis") -->
+  <xacro:include filename="$(find prl_ur5_description)/urdf/_workcell_mantis.urdf.xacro"/>
+  <xacro:include filename="$(find prl_ur5_description)/urdf/_workcell_bimanual_stand.urdf.xacro"/>
+  <xacro:property name="workcell" value="${setup_file.get('workcell', 'mantis')}"/>
+  <xacro:unless value="${workcell in ['mantis', 'bimanual_stand']}">
+    <xacro:unknown_workcell_type/>
+  </xacro:unless>
 
-  <link name="table_link">
-    <visual>
-      <geometry>
-        <mesh filename="file://$(find prl_ur5_description)/model/vention_table.stl"/>
-      </geometry>
-      <material name="Blue"/>
-    </visual>
-    <collision>
-      <geometry>
-        <mesh filename="file://$(find prl_ur5_description)/model/vention_table.stl"/>
-      </geometry>
-    </collision>
-  </link>
-  <joint name="table_fix" type="fixed">
-    <parent link="prl_ur5_base"/>
-    <child link = "table_link"/>
-    <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
-  </joint>
-  
+  <!-- UR model used for the physical/visual parameters of both arms (default "ur5") -->
+  <xacro:property name="ur_type" value="${setup_file.get('ur_type', 'ur5')}"/>
+
+  <xacro:if value="${workcell == 'mantis'}">
+    <xacro:workcell_mantis parent="prl_ur5_base"/>
+    <!-- Height of the table top (prl_ur5_base) above the ground (base_link) -->
+    <xacro:property name="workcell_height" value="0.8"/>
+    <xacro:property name="left_arm_parent" value="prl_ur5_base"/>
+    <xacro:property name="right_arm_parent" value="prl_ur5_base"/>
+  </xacro:if>
+
+  <xacro:if value="${workcell == 'bimanual_stand'}">
+    <xacro:property name="stand" value="${setup_file.get('bimanual_stand') or dict()}"/>
+    <xacro:workcell_bimanual_stand parent="prl_ur5_base"
+      arm_mount_height="${stand.get('arm_mount_height', 1.5)}"
+      plate_position="${stand.get('plate_position', 0.0)}"/>
+    <!-- The stand origin is on the ground -->
+    <xacro:property name="workcell_height" value="0.0"/>
+    <!-- arm_pose of each arm is its offset from the mounting plate -->
+    <xacro:property name="left_arm_parent" value="left_mount_plate"/>
+    <xacro:property name="right_arm_parent" value="right_mount_plate"/>
+  </xacro:if>
+
   <!-- Cameras fixtures (if any) -->
   <xacro:if value="${setup_file.get('fixed_cameras_file') is not None}">
     <xacro:fixed_cameras parent="prl_ur5_base" fixed_cameras_file="$(find prl_ur5_robot_configuration)/config/${setup_file['fixed_cameras_file']}" turn_on="true"/>
   </xacro:if>
-
-  <!-- back wall -->
-  <link name="backwall_link">
-    <visual>
-      <geometry>
-        <box size="3.5 0.1 2" />
-      </geometry>
-      <material name="grey"><color rgba="0.8 0.8 0.8 0.2"/></material>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="3.5 0.1 2" />
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="backwall_fix" type="fixed">
-    <parent link="prl_ur5_base"/>
-    <child link = "backwall_link"/>
-    <origin xyz="0 -1.05 0.25" rpy="0.0 0.0 0.0"/>
-  </joint>
-
-  <!-- left wall -->
-  <link name="leftwall_link">
-    <visual>
-      <geometry>
-        <box size="0.1 1.95 2" />
-      </geometry>
-      <material name="grey"><color rgba="0.8 0.8 0.8 0.1"/></material>
-    </visual>
-    <collision>
-      <geometry>
-        <box size="0.1 1.95 2" />
-      </geometry>
-    </collision>
-  </link>
-
-  <joint name="leftwall_fix" type="fixed">
-    <parent link="prl_ur5_base"/>
-    <child link = "leftwall_link"/>
-    <origin xyz="-1.65 0 0.25" rpy="0.0 0.0 0.0"/>
-  </joint>
 
   <!-- ARMS -->
   <!-- Left arm -->
   <xacro:property name="left" value="${setup_file.get('left')}"/>
   <xacro:property name="left_network" value="${network_file.get('left_network')}"/>
   <xacro:arm prefix="left_"
-                 parent="prl_ur5_base" 
+                 parent="${left_arm_parent}"
+                 ur_type="${ur_type}"
                  pose="${left['arm_pose']}"
                  sensors="false"
                  gz_sim="$(arg gz_sim)"
@@ -102,6 +68,7 @@
                  gripper_pose="${left.get('gripper_pose')}"
                  camera="${left.get('camera')}"
                  camera_pose="${left.get('camera_pose')}"
+                 wrist_connector="${left.get('wrist_connector', True)}"
                  joint_limits_parameters_file="$(find prl_ur5_robot_configuration)/config/${left.get('arm_joint_limits')}"
                  kinematics_parameters_file="$(find prl_ur5_robot_configuration)/config/${left.get('arm_kinematics')}"
                  network = "${left_network}"
@@ -110,7 +77,8 @@
   <xacro:property name="right" value="${setup_file.get('right')}"/>
   <xacro:property name="right_network" value="${network_file.get('right_network')}"/>
   <xacro:arm prefix="right_"
-                 parent="prl_ur5_base" 
+                 parent="${right_arm_parent}"
+                 ur_type="${ur_type}"
                  pose="${right['arm_pose']}"
                  sensors="false"
                  gz_sim="$(arg gz_sim)"
@@ -119,6 +87,7 @@
                  gripper_pose="${right.get('gripper_pose')}"
                  camera="${right.get('camera')}"
                  camera_pose="${right.get('camera_pose')}"
+                 wrist_connector="${right.get('wrist_connector', True)}"
                  joint_limits_parameters_file="$(find prl_ur5_robot_configuration)/config/${right.get('arm_joint_limits')}"
                  kinematics_parameters_file="$(find prl_ur5_robot_configuration)/config/${right.get('arm_kinematics')}"
                  network = "${right_network}"
@@ -137,7 +106,7 @@
   <joint name="base_2_ur" type="fixed">
     <parent link="base_link" />
     <child link="prl_ur5_base" />
-    <origin xyz="0 0 0.8" rpy="0 0 0" />
+    <origin xyz="0 0 ${workcell_height}" rpy="0 0 0" />
   </joint> 
 
 </robot>

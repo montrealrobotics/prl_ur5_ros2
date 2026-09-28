@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <!-- Bimanual stand: vertical frame with two brackets angled at +/-45 deg.
+       The frame origin is on the ground. Arms are mounted on left_mount_plate / right_mount_plate.
+
+       arm_mount_height: height (m) from the ground to the top point of the angled bracket
+       plate_position:   plate position along the bracket (m); 0 = highest point, range roughly 0.0 to 0.12 -->
+  <xacro:macro name="workcell_bimanual_stand" params="parent arm_mount_height:=1.5 plate_position:=0.0">
+
+    <xacro:property name="stand_mesh_dir" value="file://$(find prl_ur5_description)/model/bimanual_stand"/>
+    <!-- Meshes are exported in cm -->
+    <xacro:property name="stand_mesh_scale" value="0.01 0.01 0.01"/>
+
+    <xacro:property name="plate_width" value="0.16"/>
+    <xacro:property name="bracket_width" value="0.27952"/>
+    <xacro:property name="plate_y" value="${bracket_width/2 - plate_width/2 - plate_position}"/>
+    <xacro:property name="bracket_top_offset" value="0.19756"/>
+    <xacro:property name="mount_z" value="${arm_mount_height - bracket_top_offset}"/>
+
+    <material name="mount_grey">
+      <color rgba="0.5 0.5 0.5 1.0"/>
+    </material>
+
+    <link name="stand_frame">
+      <visual>
+        <geometry>
+          <mesh filename="${stand_mesh_dir}/mount.stl" scale="${stand_mesh_scale}"/>
+        </geometry>
+        <material name="mount_grey"/>
+      </visual>
+      <collision>
+        <origin xyz="-0.201 0 0.7" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.3 0.6 1.4"/>
+        </geometry>
+      </collision>
+    </link>
+
+    <joint name="stand_fix" type="fixed">
+      <parent link="${parent}"/>
+      <child link="stand_frame"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </joint>
+
+    <!-- Angled bracket + mounting plate for one arm -->
+    <xacro:macro name="bimanual_stand_arm_mount" params="prefix mount_xyz mount_rpy bracket_mesh plate_xyz">
+      <link name="${prefix}mount_assembly">
+        <visual>
+          <geometry>
+            <mesh filename="${stand_mesh_dir}/${bracket_mesh}" scale="${stand_mesh_scale}"/>
+          </geometry>
+          <material name="mount_grey"/>
+        </visual>
+        <collision>
+          <origin xyz="0 0 0" rpy="${radians(45)} 0 0"/>
+          <geometry>
+            <box size="0.2 0.25 0.25"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="${prefix}stand_to_mount" type="fixed">
+        <parent link="stand_frame"/>
+        <child link="${prefix}mount_assembly"/>
+        <origin xyz="${mount_xyz}" rpy="${mount_rpy}"/>
+      </joint>
+
+      <link name="${prefix}mount_plate">
+        <visual>
+          <geometry>
+            <mesh filename="${stand_mesh_dir}/mount_plate.stl" scale="${stand_mesh_scale}"/>
+          </geometry>
+          <material name="mount_grey"/>
+        </visual>
+        <collision>
+          <geometry>
+            <box size="0.12 0.12 0.08"/>
+          </geometry>
+        </collision>
+      </link>
+
+      <joint name="${prefix}mount_to_plate" type="fixed">
+        <parent link="${prefix}mount_assembly"/>
+        <child link="${prefix}mount_plate"/>
+        <origin xyz="${plate_xyz}" rpy="0 0 0"/>
+      </joint>
+    </xacro:macro>
+
+    <xacro:bimanual_stand_arm_mount prefix="left_"
+      mount_xyz="-0.212 0.2754 ${mount_z}" mount_rpy="${radians(-45)} 0 0"
+      bracket_mesh="angled_arm_2.stl" plate_xyz="0 ${-plate_y} 0.14953"/>
+
+    <xacro:bimanual_stand_arm_mount prefix="right_"
+      mount_xyz="-0.212 -0.2754 ${mount_z}" mount_rpy="${radians(45)} 0 0"
+      bracket_mesh="angled_arm_1.stl" plate_xyz="0 ${plate_y} 0.14953"/>
+
+  </xacro:macro>
+</robot>

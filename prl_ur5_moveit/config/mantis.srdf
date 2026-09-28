@@ -6,6 +6,7 @@
 <robot name="mantis" xmlns:xacro="http://www.ros.org/wiki/xacro">
     <xacro:arg name="setup_name" default="standard_setup"/>
     <xacro:property name="setup" value="${xacro.load_yaml('$(find prl_ur5_robot_configuration)/config/$(arg setup_name).yaml')}"/>
+    <xacro:property name="workcell" value="${setup.get('workcell', 'mantis')}"/>
     <xacro:include filename="$(find onrobot_description)/urdf/onrobot_rg.srdf.xacro"/>
 
     <!--GROUPS: Representation of a set of joints and links. This can be useful for specifying DOF to plan for, defining arms, end effectors, etc-->
@@ -220,8 +221,6 @@
         </xacro:macro>
 
         <!-- Iterate over all cameras using recursive function-->
-        <xacro:property name="fixed_cameras_file" value="$(find prl_ur5_robot_configuration)/config/${setup['fixed_cameras_file']}"/>
-        <xacro:property name="fixed_cameras" value="${xacro.load_yaml(fixed_cameras_file)}"/>
 
         <xacro:macro name="external_cameras_loop" params="cameras number">
             <xacro:if value="${cameras}">
@@ -234,155 +233,226 @@
             </xacro:if>
         </xacro:macro>
 
-        <xacro:external_cameras_loop cameras="${fixed_cameras}" number="0"/>
+        <xacro:if value="${setup.get('fixed_cameras_file') is not None}">
+            <xacro:property name="fixed_cameras_file" value="$(find prl_ur5_robot_configuration)/config/${setup['fixed_cameras_file']}"/>
+            <xacro:property name="fixed_cameras" value="${xacro.load_yaml(fixed_cameras_file)}"/>
+            <xacro:external_cameras_loop cameras="${fixed_cameras}" number="0"/>
+        </xacro:if>
 
-    <!-- UR5 COLLISION DISABLES -->
-    <disable_collisions link1="backwall_link" link2="left_base_link_inertia" reason="Adjacent"/>
-    <disable_collisions link1="backwall_link" link2="left_forearm_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="left_shoulder_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="left_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="left_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="leftwall_link" reason="Adjacent"/>
-    <disable_collisions link1="backwall_link" link2="right_base_link_inertia" reason="Adjacent"/>
-    <disable_collisions link1="backwall_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="backwall_link" link2="table_link" reason="Adjacent"/>
-    <disable_collisions link1="left_base_link_inertia" link2="left_shoulder_link" reason="Adjacent"/>
-    <disable_collisions link1="left_base_link_inertia" link2="leftwall_link" reason="Adjacent"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_base_link_inertia" reason="Adjacent"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_base_link_inertia" link2="table_link" reason="Adjacent"/>
-    <disable_collisions link1="left_forearm_link" link2="left_upper_arm_link" reason="Adjacent"/>
-    <disable_collisions link1="left_forearm_link" link2="left_wrist_1_link" reason="Adjacent"/>
-    <disable_collisions link1="left_forearm_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_forearm_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="left_forearm_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_forearm_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_forearm_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="left_ft300_sensor" reason="Adjacent"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_3_link" reason="Adjacent"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="left_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="left_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="left_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="left_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_ft300_sensor" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="left_upper_arm_link" reason="Adjacent"/>
-    <disable_collisions link1="left_shoulder_link" link2="leftwall_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_shoulder_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="leftwall_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_upper_arm_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="left_wrist_2_link" reason="Adjacent"/>
-    <disable_collisions link1="left_wrist_1_link" link2="left_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="left_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_1_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="left_wrist_3_link" reason="Adjacent"/>
-    <disable_collisions link1="left_wrist_2_link" link2="left_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_2_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="left_wrist_connector_link" reason="Adjacent"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_3_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_base_link_inertia" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_base_link_inertia" reason="Adjacent"/>
-    <disable_collisions link1="leftwall_link" link2="right_forearm_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_ft300_mounting_plate" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_ft300_sensor" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_shoulder_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_upper_arm_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="leftwall_link" link2="table_link" reason="Adjacent"/>
-    <disable_collisions link1="right_base_link_inertia" link2="right_shoulder_link" reason="Adjacent"/>
-    <disable_collisions link1="right_base_link_inertia" link2="table_link" reason="Adjacent"/>
-    <disable_collisions link1="right_forearm_link" link2="right_upper_arm_link" reason="Adjacent"/>
-    <disable_collisions link1="right_forearm_link" link2="right_wrist_1_link" reason="Adjacent"/>
-    <disable_collisions link1="right_ft300_mounting_plate" link2="right_ft300_sensor" reason="Adjacent"/>
-    <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_3_link" reason="Adjacent"/>
-    <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_sensor" link2="right_wrist_1_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_sensor" link2="right_wrist_2_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_sensor" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="right_ft300_sensor" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="right_shoulder_link" link2="right_upper_arm_link" reason="Adjacent"/>
-    <disable_collisions link1="right_wrist_1_link" link2="right_wrist_2_link" reason="Adjacent"/>
-    <disable_collisions link1="right_wrist_1_link" link2="right_wrist_3_link" reason="Never"/>
-    <disable_collisions link1="right_wrist_1_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="right_wrist_2_link" link2="right_wrist_3_link" reason="Adjacent"/>
-    <disable_collisions link1="right_wrist_2_link" link2="right_wrist_connector_link" reason="Never"/>
-    <disable_collisions link1="right_wrist_3_link" link2="right_wrist_connector_link" reason="Adjacent"/>
+    <!-- MANTIS COLLISION DISABLES -->
+    <xacro:if value="${workcell == 'mantis'}">
+        <disable_collisions link1="backwall_link" link2="left_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="backwall_link" link2="left_forearm_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="left_shoulder_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="left_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="left_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="leftwall_link" reason="Adjacent"/>
+        <disable_collisions link1="backwall_link" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="backwall_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="backwall_link" link2="table_link" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="left_shoulder_link" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="leftwall_link" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_base_link_inertia" link2="table_link" reason="Adjacent"/>
+        <disable_collisions link1="left_forearm_link" link2="left_upper_arm_link" reason="Adjacent"/>
+        <disable_collisions link1="left_forearm_link" link2="left_wrist_1_link" reason="Adjacent"/>
+        <disable_collisions link1="left_forearm_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_forearm_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="left_forearm_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_forearm_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_forearm_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="left_ft300_sensor" reason="Adjacent"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_3_link" reason="Adjacent"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="left_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_mounting_plate" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="left_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="left_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="left_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="left_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_ft300_sensor" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="left_upper_arm_link" reason="Adjacent"/>
+        <disable_collisions link1="left_shoulder_link" link2="leftwall_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_shoulder_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="leftwall_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_upper_arm_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="left_wrist_2_link" reason="Adjacent"/>
+        <disable_collisions link1="left_wrist_1_link" link2="left_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="left_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_1_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="left_wrist_3_link" reason="Adjacent"/>
+        <disable_collisions link1="left_wrist_2_link" link2="left_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_2_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="left_wrist_connector_link" reason="Adjacent"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_3_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_base_link_inertia" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="left_wrist_connector_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="leftwall_link" link2="right_forearm_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_ft300_mounting_plate" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_ft300_sensor" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_shoulder_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_upper_arm_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="leftwall_link" link2="table_link" reason="Adjacent"/>
+        <disable_collisions link1="right_base_link_inertia" link2="right_shoulder_link" reason="Adjacent"/>
+        <disable_collisions link1="right_base_link_inertia" link2="table_link" reason="Adjacent"/>
+        <disable_collisions link1="right_forearm_link" link2="right_upper_arm_link" reason="Adjacent"/>
+        <disable_collisions link1="right_forearm_link" link2="right_wrist_1_link" reason="Adjacent"/>
+        <disable_collisions link1="right_ft300_mounting_plate" link2="right_ft300_sensor" reason="Adjacent"/>
+        <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_3_link" reason="Adjacent"/>
+        <disable_collisions link1="right_ft300_mounting_plate" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_sensor" link2="right_wrist_1_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_sensor" link2="right_wrist_2_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_sensor" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="right_ft300_sensor" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="right_shoulder_link" link2="right_upper_arm_link" reason="Adjacent"/>
+        <disable_collisions link1="right_wrist_1_link" link2="right_wrist_2_link" reason="Adjacent"/>
+        <disable_collisions link1="right_wrist_1_link" link2="right_wrist_3_link" reason="Never"/>
+        <disable_collisions link1="right_wrist_1_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="right_wrist_2_link" link2="right_wrist_3_link" reason="Adjacent"/>
+        <disable_collisions link1="right_wrist_2_link" link2="right_wrist_connector_link" reason="Never"/>
+        <disable_collisions link1="right_wrist_3_link" link2="right_wrist_connector_link" reason="Adjacent"/>
+    </xacro:if>
+
+    <!-- BIMANUAL STAND COLLISION DISABLES
+         Only pairs that are rigidly attached to each other are disabled.
+         Pairs between the two arms are NOT disabled: on this stand the arms are close
+         enough to hit each other, so MoveIt must keep checking them. -->
+    <xacro:if value="${workcell == 'bimanual_stand'}">
+
+        <!-- Links of one arm that never collide with each other, whatever the mounting -->
+        <xacro:macro name="ur_arm_self_col" params="prefix">
+            <disable_collisions link1="${prefix}base_link_inertia" link2="${prefix}shoulder_link" reason="Adjacent"/>
+            <disable_collisions link1="${prefix}shoulder_link" link2="${prefix}upper_arm_link" reason="Adjacent"/>
+            <disable_collisions link1="${prefix}forearm_link" link2="${prefix}upper_arm_link" reason="Adjacent"/>
+            <disable_collisions link1="${prefix}forearm_link" link2="${prefix}wrist_1_link" reason="Adjacent"/>
+            <disable_collisions link1="${prefix}wrist_1_link" link2="${prefix}wrist_2_link" reason="Adjacent"/>
+            <disable_collisions link1="${prefix}wrist_1_link" link2="${prefix}wrist_3_link" reason="Never"/>
+            <disable_collisions link1="${prefix}wrist_2_link" link2="${prefix}wrist_3_link" reason="Adjacent"/>
+            <xacro:if value="${setup[prefix[:-1]].get('wrist_connector', True)}">
+                <disable_collisions link1="${prefix}wrist_1_link" link2="${prefix}wrist_connector_link" reason="Never"/>
+                <disable_collisions link1="${prefix}wrist_2_link" link2="${prefix}wrist_connector_link" reason="Never"/>
+                <disable_collisions link1="${prefix}wrist_3_link" link2="${prefix}wrist_connector_link" reason="Adjacent"/>
+            </xacro:if>
+            <xacro:if value="${setup[prefix[:-1]].get('ft_sensor') == 'robotiq_ft300'}">
+                <disable_collisions link1="${prefix}ft300_mounting_plate" link2="${prefix}ft300_sensor" reason="Adjacent"/>
+                <disable_collisions link1="${prefix}ft300_mounting_plate" link2="${prefix}wrist_1_link" reason="Never"/>
+                <disable_collisions link1="${prefix}ft300_mounting_plate" link2="${prefix}wrist_2_link" reason="Never"/>
+                <disable_collisions link1="${prefix}ft300_mounting_plate" link2="${prefix}wrist_3_link" reason="Adjacent"/>
+                <disable_collisions link1="${prefix}ft300_sensor" link2="${prefix}wrist_1_link" reason="Never"/>
+                <disable_collisions link1="${prefix}ft300_sensor" link2="${prefix}wrist_2_link" reason="Never"/>
+                <disable_collisions link1="${prefix}ft300_sensor" link2="${prefix}wrist_3_link" reason="Never"/>
+                <xacro:if value="${setup[prefix[:-1]].get('wrist_connector', True)}">
+                    <disable_collisions link1="${prefix}ft300_mounting_plate" link2="${prefix}wrist_connector_link" reason="Never"/>
+                    <disable_collisions link1="${prefix}ft300_sensor" link2="${prefix}wrist_connector_link" reason="Never"/>
+                </xacro:if>
+            </xacro:if>
+            <!-- The shoulder only turns about the base axis, so its clearance to the mount never changes -->
+            <disable_collisions link1="${prefix}shoulder_link" link2="${prefix}mount_plate" reason="Never"/>
+            <disable_collisions link1="${prefix}shoulder_link" link2="${prefix}mount_assembly" reason="Never"/>
+            <disable_collisions link1="${prefix}shoulder_link" link2="stand_frame" reason="Never"/>
+        </xacro:macro>
+        <xacro:ur_arm_self_col prefix="left_"/>
+        <xacro:ur_arm_self_col prefix="right_"/>
+
+        <!-- Static parts: the stand, both mounts and both arm bases are fixed to each other -->
+        <disable_collisions link1="stand_frame" link2="left_mount_assembly" reason="Adjacent"/>
+        <disable_collisions link1="stand_frame" link2="left_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="stand_frame" link2="left_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="stand_frame" link2="right_mount_assembly" reason="Adjacent"/>
+        <disable_collisions link1="stand_frame" link2="right_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="stand_frame" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_assembly" link2="left_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_assembly" link2="left_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_assembly" link2="right_mount_assembly" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_assembly" link2="right_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_assembly" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_plate" link2="left_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_plate" link2="right_mount_assembly" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_plate" link2="right_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="left_mount_plate" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_mount_assembly" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="left_base_link_inertia" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="right_mount_assembly" link2="right_mount_plate" reason="Adjacent"/>
+        <disable_collisions link1="right_mount_assembly" link2="right_base_link_inertia" reason="Adjacent"/>
+        <disable_collisions link1="right_mount_plate" link2="right_base_link_inertia" reason="Adjacent"/>
+    </xacro:if>
 </robot>
