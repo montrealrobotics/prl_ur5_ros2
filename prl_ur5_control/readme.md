@@ -14,11 +14,12 @@ It is part of the PRL (Paris Robotics Lab) ecosystem and is designed to facilita
 Refer to the built-in documentation in the launch file headers for more details.
 
 > [!IMPORTANT]
-> The arguments for selecting camera parameters and camera type are stored in the `camera_config.yaml` file. Ensure that the camera type matches your hardware, and only use parameters supported by the corresponding launch file.
+> The arguments for selecting camera parameters and camera type are stored in the camera config file of the setup (`cameras_config_file`, default `fixed_cameras/cameras_config.yaml`). Ensure that the camera type matches your hardware, and only use parameters supported by the corresponding launch file.
 
 **Supported cameras:**
 - **`realsense`**: Intel RealSense cameras
 - **`femto-mega`**: Orbbec Femto Mega cameras
+- **`zed`**: Stereolabs ZED cameras, simulated only for now (the real driver is not started)
 
 **Common arguments:**
 - `camera_name`: Name of the camera.
@@ -53,7 +54,8 @@ If you need to add more arguments, you must also modify the launch files accordi
 - **`dual_arm_controller.yaml`**
 - **`left_arm_controller.yaml`**
 - **`right_arm_controller.yaml`**
-- **`wsg50_integrate.yaml`**<!--  -->
+- **`wsg50_integrate.yaml`**
+- **`robotiq_2f_85.yaml`**: Robotiq 2F-85 gripper controllers, and activation controllers (real hardware only)<!--  -->
 
 ## Usage
 

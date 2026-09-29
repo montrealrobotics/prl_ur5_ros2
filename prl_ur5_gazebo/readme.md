@@ -20,21 +20,17 @@ Refer to the built-in documentation in the launch file header for more details.
 
 ## Usage
 
-### Configure Your Simulation Environment
+### Camera topics
 
-Before launching the simulation, ensure your environment matches the camera configuration specified in the config files.
+The camera bridge is generated at launch from the camera config of the setup (`cameras_config_file` in
+`prl_ur5_robot_configuration`): every activated camera publishes `camera/<camera_name>/color/...` and
+`camera/<camera_name>/depth/...`. `config/camera_bridge.yaml` is no longer used by the launch file.
 
-> [!IMPORTANT]
-> If you change the number of cameras or their active settings in your setup, you must update the camera bridge configuration file to reflect these changes.
-
-To regenerate the camera bridge configuration file, run:
+To generate a bridge file by hand:
 
 ```bash
-python3 <path_to_ws>/src/prl_ur5_ros2/prl_ur5_gazebo/scripts/generate_cameras_bridge.py -o <path_to_ws>/src/prl_ur5_ros2/prl_ur5_gazebo/config/camera_bridge.yaml
+python3 <path_to_ws>/src/prl_ur5_ros2/prl_ur5_gazebo/scripts/generate_cameras_bridge.py -o camera_bridge.yaml
 ```
-
-Replace `<path_to_ws>` with the path to your ROS 2 workspace.  
-This will update `camera_bridge.yaml` to match your current camera setup.
 
 
 

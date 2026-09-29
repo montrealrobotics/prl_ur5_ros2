@@ -25,6 +25,9 @@ ros2 launch prl_ur5_run sim.launch.py
 ```bash
 ros2 launch prl_ur5_run real.launch.py
 ```
+Arms with `tool_communication: true` in the setup file also get the UR tool communication (the RS-485 of the tool
+connector as a local serial device, e.g. for a Robotiq 2F-85).
+
 #### Parameters:
 - **`activate_cameras`**: Activate cameras. Default: `false`.
 - **`left_kinematics_file`**: Path to the kinematics configuration file for the left robot. Default: `prl_ur5_robot_configuration/config/kinematics/ur5_left.yaml`.

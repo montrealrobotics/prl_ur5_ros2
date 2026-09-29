@@ -26,6 +26,15 @@
 
 This project integrates a ROS 2 development environment with Docker and provides packages for the description and simulation of the UR5 workbench, developed by the Paris Robotics Lab and referred to as **Mantis**.
 
+The arms can be mounted on different **workcells**, selected with `workcell` in the setup file of
+`prl_ur5_robot_configuration`:
+- `mantis`: the Mantis Vention table with its walls (default).
+- `bimanual_stand`: a vertical stand with two brackets angled at +/-45 deg (e.g. two UR5e).
+
+Arm model (`ur_type`), grippers (OnRobot RG2/RG6, Weiss WSG 50, Allegro hand, Robotiq 2F-85, custom), F/T sensor,
+wrist and scene cameras (RealSense D435i, Orbbec Femto Mega, ZED Mini, ZED 2i) are selected in the same setup file.
+See the [prl_ur5_robot_configuration README](https://github.com/inria-paris-robotics-lab/prl_ur5_robot_configuration) for all the options.
+
 <div align="center">
     <img src="doc/bimanual.png" alt="Bimanual UR" width="550"> 
 </div>
@@ -57,8 +66,23 @@ Launch file to access the real robot by starting the driver and enabling control
 ## **Prerequisites**
 
 - Docker installed (tested on `linux/amd64`; not supported on ARM).  
-- Compatible version of ROS 2 (Humble).  
+- Compatible version of ROS 2 (Jazzy, as in the Docker image).  
 - Gazebo for simulation if intended.  
+
+---
+
+### Dependencies
+
+`dependencies.repos` lists the source dependencies (robot configuration, grippers, calibration, Robotiq 2F-85 and
+its `serial` library, ZED camera description). Import them next to this repository:
+
+```bash
+cd <ws>/src
+vcs import --skip-existing < prl_ur5_ros2/dependencies.repos
+```
+
+`ur_robot_driver` 3.8 and 3.9 are both supported: `ur_type` is only passed to the UR driver from 3.9.0, which
+requires it.
 
 ---
 
@@ -168,6 +192,13 @@ Alternatively, you can customize the launch by enabling or disabling specific co
 ```bash
 ros2 launch prl_ur5_run real.launch.py launch_rviz:=<true|false> launch_moveit:=<true|false>
 ```
+
+---
+
+### Real robot with a Robotiq 2F-85
+
+See the Robotiq section of the `prl_ur5_robot_configuration` README: tool communication, Robotiq URCap disabled,
+tool I/O controlled by the user. The gripper opens and closes fully when its driver starts.
 
 ---
 
