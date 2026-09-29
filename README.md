@@ -36,8 +36,17 @@ wrist and scene cameras (RealSense D435i, Orbbec Femto Mega, ZED Mini, ZED 2i) a
 See the [prl_ur5_robot_configuration README](https://github.com/inria-paris-robotics-lab/prl_ur5_robot_configuration) for all the options.
 
 <div align="center">
-    <img src="doc/bimanual.png" alt="Bimanual UR" width="550"> 
+    <img src="doc/bimanual.png" alt="Bimanual UR" width="550"><br>
+     <em>Mantis workcell</em>
 </div>
+
+
+
+<div align="center">
+    <img src="doc/bimanual_mount.png" alt="Bimanual UR non mantis" width="550" text="test"><br>
+     <em>Bimanual mount workcell</em>
+</div>
+
 
 ---
 
