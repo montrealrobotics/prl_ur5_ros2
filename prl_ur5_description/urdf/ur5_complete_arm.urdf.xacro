@@ -184,7 +184,8 @@
 
         <!-- hand-eye camera -->
         <xacro:unless value="${camera is None}">
-            <xacro:camera_sensor camera="${camera}" prefix='${prefix}' parent="${prefix}tool" pose="${camera_pose}" turn_on="${sensors}"/>
+            <!-- Mounted where the gripper is mounted (tool0, or the F/T sensor tool frame); always on in Gazebo -->
+            <xacro:camera_sensor camera="${camera}" prefix='${prefix}' parent="${gripper_parent}" pose="${camera_pose}" turn_on="${sensors in [True, 'true', 'True'] or gz_sim in [True, 'true', 'True']}"/>
         </xacro:unless>
 
     </xacro:macro>

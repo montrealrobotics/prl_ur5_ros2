@@ -24,8 +24,10 @@
 # Usage:
 #   $ ros2 launch prl_ur5_gazebo start_gazebo_sim.launch.py
 ############################################################################################################
+import importlib.util
 import os
-from ament_index_python.packages import get_package_share_directory
+import tempfile
+from ament_index_python.packages import PackageNotFoundError, get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import AppendEnvironmentVariable, DeclareLaunchArgument, IncludeLaunchDescription, RegisterEventHandler, OpaqueFunction
 from launch.event_handlers import OnProcessExit
@@ -55,7 +57,6 @@ def launch_setup(context):
     rviz_config_file = PathJoinSubstitution([FindPackageShare('prl_ur5_gazebo'),'rviz', 'config.rviz'])
     default_world_file = PathJoinSubstitution([FindPackageShare('prl_ur5_gazebo'),'world', 'default_world.sdf'])
     onrobot_world_file = PathJoinSubstitution([FindPackageShare('prl_ur5_gazebo'),'world', 'onrobot_world.sdf'])
-    camera_bridge_params = os.path.join(get_package_share_directory('prl_ur5_gazebo'), 'config', 'camera_bridge.yaml')
     config_controller_path = os.path.join(get_package_share_directory('prl_ur5_robot_configuration'), 'config', 'controller_setup.yaml')
     with open(config_controller_path, 'r') as setup_file:
         config_controller = yaml.safe_load(setup_file)
@@ -101,6 +102,17 @@ def launch_setup(context):
 
     with open(config_file, 'r') as setup_file:
         config = yaml.safe_load(setup_file)
+
+    # Camera topics bridged from Gazebo: generated from the camera config of the setup
+    cameras_config_file = os.path.join(get_package_share_directory('prl_ur5_robot_configuration'), 'config',
+                                       config.get('cameras_config_file', 'fixed_cameras/cameras_config.yaml'))
+    generator_spec = importlib.util.spec_from_file_location(
+        'generate_cameras_bridge',
+        os.path.join(get_package_share_directory('prl_ur5_gazebo'), 'scripts', 'generate_cameras_bridge.py'))
+    generator = importlib.util.module_from_spec(generator_spec)
+    generator_spec.loader.exec_module(generator)
+    camera_bridge_params = os.path.join(tempfile.mkdtemp(prefix='prl_ur5_gazebo_'), 'camera_bridge.yaml')
+    generator.generate_camera_bridge_config(cameras_config_file, camera_bridge_params)
 
     gripper = config.get('left', {}).get('gripper_controller', {})
 
@@ -165,6 +177,7 @@ def launch_setup(context):
                 'align_depth.launch.py'
                 ]),
             ]),
+        launch_arguments={'camera_config': cameras_config_file}.items(),
         condition=IfCondition(LaunchConfiguration('activate_cameras')),
     )
 
@@ -223,15 +236,14 @@ def launch_setup(context):
             ('sim', 'true'),
         ],
     )
-    # Let Gazebo resolve package:// meshes of grippers that do not use absolute paths
+    # Let Gazebo resolve package:// meshes of grippers and cameras that do not use absolute paths
     gz_resource_paths = []
-    for side in ('left', 'right'):
-        if config.get(side, {}).get('gripper') == 'robotiq-2f-85':
-            gz_resource_paths.append(AppendEnvironmentVariable(
-                'GZ_SIM_RESOURCE_PATH',
-                os.path.dirname(get_package_share_directory('robotiq_description')),
-            ))
-            break
+    for package in ('robotiq_description', 'zed_description', 'realsense2_description'):
+        try:
+            share = get_package_share_directory(package)
+        except PackageNotFoundError:
+            continue
+        gz_resource_paths.append(AppendEnvironmentVariable('GZ_SIM_RESOURCE_PATH', os.path.dirname(share)))
 
     return [*gz_resource_paths,
             robot_state_publisher, 

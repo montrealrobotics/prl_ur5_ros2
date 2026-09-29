@@ -8,7 +8,7 @@
   <xacro:macro name="camera_sensor" params="prefix parent camera pose turn_on:=false">
 
     <!-- check camera type -->
-    <xacro:unless value="${camera in ['realsense-d435i', 'femto-mega', None]}">
+    <xacro:unless value="${camera in ['realsense-d435i', 'femto-mega', 'zed-mini', 'zed-2i', None]}">
       <xacro:unknown_camera_type/>
     </xacro:unless>
 
@@ -20,6 +20,12 @@
       <xacro:gazebo_d435 name="${prefix}camera" turn_on="${turn_on}"/>
     </xacro:if>
 
+    <!-- if Stereolabs ZED Mini / ZED 2i (pose is the pose of the camera's mounting screw) -->
+    <xacro:if value="${camera in ['zed-mini', 'zed-2i']}">
+      <xacro:include filename="$(find prl_ur5_description)/urdf/_zed.urdf.xacro"/>
+      <xacro:zed_sensor name="${prefix}camera" model="${'zedm' if camera == 'zed-mini' else 'zed2i'}"
+                        parent="${parent}" pose="${pose}" turn_on="${turn_on}"/>
+    </xacro:if>
     <xacro:if value="${camera == 'femto-mega'}">
         <xacro:femto_bolt prefix="${prefix}camera" parent="${parent}" use_nominal_extrinsics="true">
             <origin xyz="${pose['x']} ${pose['y']} ${pose['z']}" rpy="${pose['roll']} ${pose['pitch']} ${pose['yaw']}"/>

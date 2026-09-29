@@ -28,3 +28,7 @@
     local-name: serial
     uri: https://github.com/tylerjw/serial.git
     version: ros2
+- git:
+    local-name: zed-ros2-description
+    uri: https://github.com/stereolabs/zed-ros2-description.git
+    version: main

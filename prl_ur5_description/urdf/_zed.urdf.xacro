@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://wiki.ros.org/xacro">
+
+  <xacro:include filename="$(find zed_description)/urdf/zed_macro.urdf.xacro"/>
+
+  <!-- Stereolabs ZED camera (zed_description) mounted on parent, with Gazebo colour and depth sensors.
+       name:  camera name, also the camera_name of the ZED ROS 2 wrapper. Links are ${name}_camera_link (mounting
+              screw), ${name}_camera_center, ${name}_left_camera_frame(_optical), ...
+       model: zedm (ZED Mini) or zed2i (ZED 2i)
+       pose:  pose of ${name}_camera_link in parent
+       Gazebo has no ZED model: the sensors are a generic colour + depth camera at the left lens, named
+       ${name}_color and ${name}_depth like the D435 ones. -->
+  <xacro:macro name="zed_sensor" params="name model parent pose turn_on:=false">
+    <xacro:zed_camera name="${name}" model="${model}">
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+    </xacro:zed_camera>
+
+    <joint name="${name}_camera_mount_joint" type="fixed">
+      <parent link="${parent}"/>
+      <child link="${name}_camera_link"/>
+      <origin xyz="${pose['x']} ${pose['y']} ${pose['z']}" rpy="${pose['roll']} ${pose['pitch']} ${pose['yaw']}"/>
+    </joint>
+
+    <!-- Horizontal field of view and depth range from the Stereolabs datasheets -->
+    <xacro:property name="zed_hfov" value="${radians(90) if model == 'zedm' else radians(110)}"/>
+    <xacro:property name="zed_near" value="${0.1 if model == 'zedm' else 0.3}"/>
+    <xacro:property name="zed_far" value="${15.0 if model == 'zedm' else 20.0}"/>
+
+    <gazebo reference="${name}_left_camera_frame">
+      <sensor name="${name}_color" type="camera">
+        <gz_frame_id>${name}_left_camera_frame_optical</gz_frame_id>
+        <camera name="${name}">
+          <horizontal_fov>${zed_hfov}</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>360</height>
+            <format>RGB_INT8</format>
+          </image>
+          <clip>
+            <near>0.05</near>
+            <far>100</far>
+          </clip>
+        </camera>
+        <always_on>${turn_on}</always_on>
+        <update_rate>30</update_rate>
+        <visualize>true</visualize>
+      </sensor>
+      <sensor name="${name}_depth" type="depth_camera">
+        <gz_frame_id>${name}_left_camera_frame_optical</gz_frame_id>
+        <camera name="${name}">
+          <horizontal_fov>${zed_hfov}</horizontal_fov>
+          <image>
+            <width>640</width>
+            <height>360</height>
+          </image>
+          <clip>
+            <near>${zed_near}</near>
+            <far>${zed_far}</far>
+          </clip>
+          <point_cloud>true</point_cloud>
+        </camera>
+        <always_on>${turn_on}</always_on>
+        <update_rate>30</update_rate>
+        <visualize>false</visualize>
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+</robot>

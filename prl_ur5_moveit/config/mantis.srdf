@@ -98,8 +98,13 @@
     <xacro:call macro="${left_gripper_name}_col_with" prefix='left_gripper' link='left_wrist_3_link'/>
     <xacro:call macro="${left_gripper_name}_col_with" prefix='left_gripper' link='left_ft300_mounting_plate'/>
     <xacro:call macro="${left_gripper_name}_col_with" prefix='left_gripper' link='left_ft300_sensor'/>
-    <xacro:if value="${'camera' in setup['left']}">
+    <xacro:if value="${setup['left'].get('camera') not in [None, 'zed-mini', 'zed-2i']}">
         <xacro:call macro="${left_gripper_name}_col_with" prefix='left_gripper' link='left_camera_link'/>
+    </xacro:if>
+    <!-- ZED wrist camera: rigidly attached to wrist 3 next to the gripper -->
+    <xacro:if value="${setup['left'].get('camera') in ['zed-mini', 'zed-2i']}">
+        <xacro:call macro="${left_gripper_name}_col_with" prefix='left_gripper' link='left_camera_camera_center'/>
+        <disable_collisions link1="left_camera_camera_center" link2="left_wrist_3_link" reason="Adjacent"/>
     </xacro:if>
     
     <!-- RIGHT GRIPPER-->
@@ -147,8 +152,13 @@
     <xacro:call macro="${right_gripper_name}_col_with" prefix='right_gripper' link='right_wrist_3_link'/>
     <xacro:call macro="${right_gripper_name}_col_with" prefix='right_gripper' link='right_ft300_mounting_plate'/>
     <xacro:call macro="${right_gripper_name}_col_with" prefix='right_gripper' link='right_ft300_sensor'/>
-    <xacro:if value="${'camera' in setup['right']}">
+    <xacro:if value="${setup['right'].get('camera') not in [None, 'zed-mini', 'zed-2i']}">
         <xacro:call macro="${right_gripper_name}_col_with" prefix='right_gripper' link='right_camera_link'/>
+    </xacro:if>
+    <!-- ZED wrist camera: rigidly attached to wrist 3 next to the gripper -->
+    <xacro:if value="${setup['right'].get('camera') in ['zed-mini', 'zed-2i']}">
+        <xacro:call macro="${right_gripper_name}_col_with" prefix='right_gripper' link='right_camera_camera_center'/>
+        <disable_collisions link1="right_camera_camera_center" link2="right_wrist_3_link" reason="Adjacent"/>
     </xacro:if>
 
 
@@ -207,29 +217,31 @@
     <!--DISABLE COLLISIONS: By default it is assumed that any link of the robot could potentially come into collision with any other link in the robot. This tag disables collision checking between a specified pair of links. -->
     <!-- External cameras -->
         <xacro:macro name="external_camera_col" params="number camera">
-            <disable_collisions link1="fixed_camera_${number}_bb" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
-            <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
-            <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_hr_${number}" reason="Adjacent"/>
-            <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
+            <xacro:if value="${camera.get('fixture', 'mantis_post') != 'none'}">
+                <disable_collisions link1="fixed_camera_${number}_bb" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_hr_${number}" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_vt" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
 
-            <disable_collisions link1="fixed_camera_${number}_bb" link2="table_link" reason="Adjacent"/>
-            <disable_collisions link1="fixed_camera_${number}_sj" link2="table_link" reason="Adjacent"/>
-            <disable_collisions link1="fixed_camera_${number}_vt" link2="table_link" reason="Adjacent"/>
-            <disable_collisions link1="fixed_hr_${number}" link2="table_link" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_bb" link2="table_link" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_sj" link2="table_link" reason="Adjacent"/>
+                <disable_collisions link1="fixed_camera_${number}_vt" link2="table_link" reason="Adjacent"/>
+                <disable_collisions link1="fixed_hr_${number}" link2="table_link" reason="Adjacent"/>
             
-            <xacro:if value="${camera['type'] == 'femto-mega'}">
-                <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_vt" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="table_link" reason="Never"/>
+                <xacro:if value="${camera['type'] == 'femto-mega'}">
+                    <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_vt" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_base_link" link2="table_link" reason="Never"/>
+                </xacro:if>
+                <xacro:unless value="${camera['type'] == 'femto-mega'}">
+                    <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_vt" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
+                    <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="table_link" reason="Never"/>
+                </xacro:unless>
+            
             </xacro:if>
-            <xacro:unless value="${camera['type'] == 'femto-mega'}">
-                <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_vt" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_sj" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="fixed_camera_${number}_bb" reason="Adjacent"/>
-                <disable_collisions link1="${camera['name_prefix']}_camera_link" link2="table_link" reason="Never"/>
-            </xacro:unless>
-            
         </xacro:macro>
 
         <!-- Iterate over all cameras using recursive function-->

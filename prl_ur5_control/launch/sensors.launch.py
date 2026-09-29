@@ -9,7 +9,11 @@ from launch.actions import GroupAction
 from launch_ros.actions import PushRosNamespace, SetParameter
 
 def launch_setup(context):
-    config_file = Path(get_package_share_directory('prl_ur5_robot_configuration')) / 'config/fixed_cameras/cameras_config.yaml'
+    # Camera config of the setup (default: fixed_cameras/cameras_config.yaml)
+    config_dir = Path(get_package_share_directory('prl_ur5_robot_configuration')) / 'config'
+    with (config_dir / 'standard_setup.yaml').open('r') as f:
+        setup = yaml.safe_load(f)
+    config_file = config_dir / setup.get('cameras_config_file', 'fixed_cameras/cameras_config.yaml')
     
     with config_file.open('r') as setup_file:
         config = yaml.safe_load(setup_file)
